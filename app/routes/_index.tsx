@@ -5,7 +5,7 @@ import Play from "./play";
 import Home from "./home";
 
 export const meta: MetaFunction = () => {
-  return [{ title: "Gotcha" }, { name: "description", content: "Home" }];
+  return [{ title: "Gotcha!" }, { name: "description", content: "Home" }];
 };
 
 export default function Index() {
