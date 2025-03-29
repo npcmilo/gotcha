@@ -12,7 +12,7 @@ const closeIcon = (
     viewBox="0 -960 960 960"
     width="35px"
     fill="#121212"
-    className="absolute right-[5vw] top-[-5vh] cursor-pointer"
+    className="absolute right-[5vw] top-[0vh] cursor-pointer"
   >
     <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
   </svg>
@@ -85,15 +85,15 @@ export default function ManifestoModal({ onClose }: ModalProps) {
       </div>
 
       {/* BODY */}
-      <div className="w-full flex flex-col gap-[30px] text-sm max-w-[500px]">
+      <div className="relative w-full flex flex-col gap-[30px] text-sm max-w-[500px]">
         <div className="relative">
           <img
             src="/app/assets/manifesto-img-5.png"
             alt="Image displaying AI being deceptive"
-            className="h-[38vh] w-[40vh]"
+            className="h-[380px] w-[380px]"
           />
           {/* Video Overlay */}
-          <div className="absolute top-[57px] right-[98px] w-[115px] h-[125px] rounded-[8px]">
+          <div className="absolute top-[65px] left-[243px] w-[122px] h-[142px] rounded-[8px]">
             {!liked && (
               <motion.span
                 style={{
@@ -125,8 +125,9 @@ export default function ManifestoModal({ onClose }: ModalProps) {
                 ></iframe>
               </motion.div>
             )}
+          </div>
+          <div className="flex flex-row gap-[5px absolute left-[243px] top-[210px]">
             <motion.button
-              className="absolute top-[128px] left-[0]"
               whileTap={{ scale: 0.9 }}
               onClick={() => setLiked((prev) => !prev)}
             >
@@ -134,7 +135,6 @@ export default function ManifestoModal({ onClose }: ModalProps) {
             </motion.button>
             {liked && (
               <motion.button
-                className="absolute top-[128px] left-[22px]"
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setSoundOn((prev) => !prev)}
                 initial={{ opacity: 0 }}
