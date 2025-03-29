@@ -99,7 +99,7 @@ export default function ManifestoModal({ onClose }: ModalProps) {
                 style={{
                   position: "absolute",
                   bottom: -100,
-                  right: -60,
+                  right: -42,
                   fontSize: "12px",
                   color: "#999999",
                 }}
