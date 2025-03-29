@@ -1,51 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Dispatch, SetStateAction } from "react";
 
 import GridImage from "./gridImage";
-import Modal from "./modal";
-
 interface GameProps {
   onInfoClick: () => void;
+  onRefreshClick: () => void;
+  disabled?: boolean;
+  onGameEnd: (correctSelections: number[], totalSeconds: number) => void;
+  timeElapsed: number;
+  setTimeElapsed: Dispatch<SetStateAction<number>>;
+  images: { src: string; key: number }[];
+  realImageIndexes: number[];
 }
 
-const images = [
-  {
-    src: "https://images.unsplash.com/photo-1520255870062-bd79d3865de7",
-    key: 1,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1519302959554-a75be0afc82a",
-    key: 2,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166",
-    key: 3,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166",
-    key: 4,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1575999502951-4ab25b5ca889",
-    key: 5,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a",
-    key: 6,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1520255870062-bd79d3865de7",
-    key: 7,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1563296291-14f26f10c20f",
-    key: 8,
-  },
-  {
-    src: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a",
-    key: 9,
-  },
-];
+declare global {
+  interface Window {
+    gameAudio: HTMLAudioElement;
+  }
+}
 
 const headphonesIcon = (
   <svg
@@ -84,24 +57,94 @@ const refreshIcon = (
   </svg>
 );
 
-export default function Game({ onInfoClick }: GameProps) {
+const gridOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // all image indexes
+const answerKey = [2, 4, 8];
+// const answerKey = [1, 3, 5, 6, 7, 9]; // "real" image indexes
+
+export default function Game({
+  onInfoClick,
+  onRefreshClick,
+  disabled,
+  onGameEnd,
+  timeElapsed,
+  setTimeElapsed,
+  images,
+  realImageIndexes,
+}: GameProps) {
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
 
+  /* Update Timer: Stop if game is disabled */
+  useEffect(() => {
+    if (!disabled) {
+      const timer = setInterval(() => {
+        setTimeElapsed((prev) => prev + 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [disabled]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   const toggleSelect = (key: number) => {
+    if (disabled) return;
     setSelectedImages((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     );
   };
 
+  const containerStyle = {
+    ...styles.glass,
+    transition: "opacity 1s",
+    ...(disabled && {
+      opacity: 0.5,
+      pointerEvents: "none" as const,
+    }),
+  };
+
+  /* End Game: Calculate correct array and execute onGameEnd */
+  const endGame = () => {
+    // Calculate correct array
+    const incorrect: number[] = [];
+    realImageIndexes.forEach((key) => {
+      if (!selectedImages.includes(key)) {
+        incorrect.push(key);
+      }
+    });
+
+    selectedImages.forEach((key) => {
+      if (!realImageIndexes.includes(key)) {
+        incorrect.push(key);
+      }
+    });
+
+    const correct: number[] = gridOptions.filter((x) => !incorrect.includes(x));
+    setSelectedImages([]); // Reset selected images
+    onGameEnd(correct, timeElapsed); // Pass in total game time elapsed and correct array
+  };
+
   return (
     <motion.div
-      style={styles.glass}
+      style={containerStyle}
       className="w-[400px] flex flex-col items-center justify-center p-[10px] gap-[7px]"
+      transition={{ duration: 0.5 }}
     >
       {/* HEADER */}
-      <div className="w-full h-[100px] flex-col flex items-start justify-center p-[20px] bg-blue-500 text-white">
-        <h3>Select all real images with</h3>
-        <h1 className="text-[1.5em] font-bold mt-[-5px]">boats</h1>
+      <div className="w-full h-[100px] flex-row flex justify-between items-start p-[20px] bg-blue-500 text-white">
+        {/* LEFT TEXT */}
+        <div className="items-start justify-center">
+          <h3>Select all real images of</h3>
+          <h1 className="text-[1.5em] font-bold mt-[-5px]">lebron james</h1>
+        </div>
+        {/* GAME TIMER */}
+        <div className="flex flex-col justify-center items-center">
+          <h1 id="game-timer" className="font-bold text-3xl">
+            {formatTime(timeElapsed)}
+          </h1>
+        </div>
       </div>
 
       {/* IMAGE GRID */}
@@ -111,7 +154,10 @@ export default function Game({ onInfoClick }: GameProps) {
             key={image.key}
             src={image.src}
             selected={selectedImages.includes(image.key)}
-            onClick={() => toggleSelect(image.key)}
+            onClick={() => {
+              toggleSelect(image.key);
+            }}
+            style={disabled ? { filter: "blur(2px)" } : null}
           />
         ))}
       </div>
@@ -119,11 +165,26 @@ export default function Game({ onInfoClick }: GameProps) {
       {/* FOOTER */}
       <div className="w-full h-[50px] justify-between items-center flex flex-row">
         <div className="flex flex-row h-full gap-[10px] flex items-center justify-center">
-          <button>{refreshIcon}</button>
-          <button>{headphonesIcon}</button>
+          <button onClick={onRefreshClick}>{refreshIcon}</button>
+          <button
+            onClick={() => {
+              if (window.gameAudio) {
+                window.gameAudio.currentTime = 0;
+                window.gameAudio.play();
+              } else {
+                window.gameAudio = new Audio("/app/assets/instructions.mp3");
+                window.gameAudio.play();
+              }
+            }}
+          >
+            {headphonesIcon}
+          </button>
           <button onClick={onInfoClick}>{infoIcon}</button>
         </div>
-        <button className="h-full w-[120px] flex p-[10px] text-white bg-blue-500 flex items-center justify-center font-[500]">
+        <button
+          className="h-full w-[120px] flex p-[10px] text-white bg-blue-500 flex items-center justify-center font-[500]"
+          onClick={endGame}
+        >
           VERIFY
         </button>
       </div>
@@ -138,5 +199,6 @@ const styles = {
     WebkitBackdropFilter: "blur(10px)",
     boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
     border: "1px solid rgba(255, 255, 255, 0.18)",
+    transformStyle: "preserve-3d",
   },
 };

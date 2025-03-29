@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AnimatePresence } from "framer-motion";
 import GridImage from "~/components/play/gridImage";
 import Game from "~/components/play/game";
-import Modal from "~/components/play/modal";
+import InstructionsModal from "~/components/play/instructionsModal";
 import { Link } from "@remix-run/react";
+import ResultsModal from "~/components/play/resultsModal";
+import ManifestoModal from "~/components/play/manifestoModal";
 
 interface PlayProps {
   onBack: () => void;
@@ -34,33 +36,152 @@ const leaderboardIcon = (
   </svg>
 );
 
+const infoIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height="35px"
+    viewBox="0 -960 960 960"
+    width="35px"
+    fill="#121212"
+  >
+    <path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+  </svg>
+);
+
+const manifestoIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height="35px"
+    viewBox="0 -960 960 960"
+    width="35px"
+    fill="#121212"
+  >
+    <path d="M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z" />
+  </svg>
+);
+
+const aiImageURLs = [
+  "/app/assets/ai-1.png",
+  "/app/assets/ai-2.png",
+  "/app/assets/ai-3.png",
+];
+
+const realImageURLs = [
+  "/app/assets/real-1.png",
+  "/app/assets/real-2.png",
+  "/app/assets/real-3.png",
+  "/app/assets/real-4.png",
+  "/app/assets/real-5.png",
+  "/app/assets/real-6.png",
+];
+
 export default function Play({ onBack }: PlayProps) {
-  const [isShowingModal, setIsShowingModal] = useState(false);
+  const [isShowingInstructionsModal, setIsShowingInstructionsModal] =
+    useState(false);
+  const [isShowingResultsModal, setIsShowingResultsModal] = useState(false);
+  const [isShowingManifestoModal, setIsShowingManifestoModal] = useState(false);
+  const [totalSeconds, setTotalSeconds] = useState(0);
+  const [correct, setCorrect] = useState<number[]>([]);
+  const [gameIsRunning, setGameIsRunning] = useState(true);
+  const [images, setImages] = useState<{ src: string; key: number }[]>([]);
+
+  const handleVerifyClick = (correctSelections: number[], seconds: number) => {
+    setIsShowingResultsModal(true);
+    setCorrect(correctSelections);
+    setTotalSeconds(seconds);
+    setGameIsRunning(false);
+  };
+
+  function generateGameImages() {
+    const shuffled = [...realImageURLs, ...aiImageURLs]
+      .sort(() => Math.random() - 0.5)
+      .map((src, index) => ({
+        key: index + 1,
+        src,
+      }));
+
+    const realIndexes = shuffled
+      .filter((img) => realImageURLs.includes(img.src))
+      .map((img) => img.key);
+
+    setImages(shuffled);
+    setCorrect(realIndexes);
+  }
+
+  useEffect(() => {
+    generateGameImages();
+  }, []);
 
   return (
     <motion.div className="h-screen w-screen bg-white flex justify-center items-center">
-      <Header onClick={onBack} />
-      <Game onInfoClick={() => setIsShowingModal(true)} />
+      <Header
+        onBackClick={onBack}
+        onManifestoClick={() => setIsShowingManifestoModal(true)}
+      />
+      <Game
+        onInfoClick={() => setIsShowingInstructionsModal(true)}
+        onRefreshClick={() => {
+          generateGameImages();
+          setTotalSeconds(0);
+        }}
+        disabled={!gameIsRunning}
+        onGameEnd={handleVerifyClick}
+        timeElapsed={totalSeconds}
+        setTimeElapsed={setTotalSeconds}
+        images={images}
+        realImageIndexes={correct}
+      />
 
       <AnimatePresence>
         {/* INSTRUCTIONS MODAL */}
-        {isShowingModal && <Modal onClose={() => setIsShowingModal(false)} />}
+        {isShowingInstructionsModal && (
+          <InstructionsModal
+            onClose={() => setIsShowingInstructionsModal(false)}
+          />
+        )}
+        {/* RESULTS MODAL */}
+        {isShowingResultsModal && (
+          <ResultsModal
+            onClose={() => {
+              setIsShowingResultsModal(false);
+              setTotalSeconds(0);
+              setGameIsRunning(true); // force <Game /> to re-render
+              generateGameImages();
+            }}
+            correct={correct}
+            totalSeconds={`${Math.floor(totalSeconds / 60)}:${(totalSeconds % 60).toString().padStart(2, "0")}`}
+            images={images}
+          />
+        )}
+        {/* RESULTS MODAL */}
+        {isShowingManifestoModal && (
+          <ManifestoModal
+            onClose={() => {
+              setIsShowingManifestoModal(false);
+            }}
+          />
+        )}
       </AnimatePresence>
     </motion.div>
   );
 }
 
-const Header = ({ onClick }: { onClick: () => void }) => {
+const Header = ({
+  onBackClick,
+  onManifestoClick,
+}: {
+  onBackClick: () => void;
+  onManifestoClick: () => void;
+}) => {
   return (
     <div className="absolute top-10 left-0 flex w-full items-center justify-between pr-[20px] pl-[20px] mw-[500px]">
       <img
         src="/app/assets/logo.png"
-        className="h-[25px] w-[105px] cursor-pointer"
-        onClick={onClick}
+        className="h-[25px] w-[95px] cursor-pointer"
+        onClick={onBackClick}
       ></img>
       <div className="flex flex-row justify-center items-center gap-[10px]">
-        <button>{leaderboardIcon}</button>
-        <button>{settingsIcon}</button>
+        <button onClick={onManifestoClick}>{manifestoIcon}</button>
       </div>
     </div>
   );

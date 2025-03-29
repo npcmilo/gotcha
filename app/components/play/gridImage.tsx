@@ -17,9 +17,10 @@ interface Props {
   src: string;
   selected: boolean;
   onClick: () => void;
+  style?: any;
 }
 
-export default function GridImage({ src, selected, onClick }: Props) {
+export default function GridImage({ src, selected, onClick, style }: Props) {
   return (
     <motion.div
       onClick={onClick}
@@ -38,7 +39,12 @@ export default function GridImage({ src, selected, onClick }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
-      <img src={src} alt="Grid Image" className="w-full h-full object-cover" />
+      <img
+        src={src}
+        alt="Grid Image"
+        className="w-full h-full object-cover"
+        style={style}
+      />
     </motion.div>
   );
 }
