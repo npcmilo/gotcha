@@ -64,7 +64,7 @@ export default function ManifestoModal({ onClose }: ModalProps) {
       animate={{ bottom: 0 }}
       exit={{ bottom: -1000 }}
       style={styles.glass}
-      className="w-screen absolute left-0 bottom-0 h-[85%] flex flex-col justify-start items-start text-[#121212] pt-[5vh] pb-[10vh] gap-[25px] z-20"
+      className="w-screen absolute left-0 bottom-0 h-[90vh] flex flex-col justify-start items-start text-[#121212] pt-[5vh] pb-[10vh] gap-[25px] z-20"
     >
       {/* HEADER */}
       <div className="w-full relative pr-[30px] pl-[30px]">
@@ -90,61 +90,8 @@ export default function ManifestoModal({ onClose }: ModalProps) {
           <img
             src="/app/assets/manifesto-img-5.png"
             alt="AI being deceptive"
-            className="h-[340px] w-[350px]"
+            className="max-h-[340px] max-w-[350px] w-[70vw] h-[67vw]"
           />
-          {/* Video Overlay */}
-          <div className="absolute top-[65px] left-[243px] w-[122px] h-[142px] rounded-[8px]">
-            {!liked && (
-              <motion.span
-                style={{
-                  position: "absolute",
-                  bottom: -100,
-                  right: 0,
-                  fontSize: "12px",
-                  color: "#999999",
-                }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                Click to like the post!
-              </motion.span>
-            )}
-            {liked && (
-              <motion.div
-                className="w-full h-full overflow-hidden rounded-[8px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <iframe
-                  src={`https://www.youtube.com/embed/GNw7AeOBHBQ?autoplay=1&mute=${soundOn ? "0" : "1"}&loop=1&playlist=GNw7AeOBHBQ&controls=0&modestbranding=0&rel=0&showinfo=0&disablekb=1`}
-                  title="Gotcha Manifesto"
-                  allow="autoplay"
-                  className="w-full h-full relative"
-                ></iframe>
-              </motion.div>
-            )}
-          </div>
-          <div className="flex flex-row gap-[5px absolute left-[220px] top-[190px]">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setLiked((prev) => !prev)}
-            >
-              <LikeIcon fill={liked ? "#EF4444" : "#000000"} />
-            </motion.button>
-            {liked && (
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setSoundOn((prev) => !prev)}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {soundOn ? volumeOnIcon : volumeOffIcon}
-              </motion.button>
-            )}
-          </div>
         </div>
         <div className="flex flex-col gap-[10px] justify-center items-center">
           <p className="pr-[30px] pl-[30px]">
