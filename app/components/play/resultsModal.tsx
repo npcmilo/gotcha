@@ -45,7 +45,7 @@ export default function ResultsModal({
         left: "50%",
         transform: "translateX(-50%)",
       }}
-      className="absolute mt-[30px] text-black z-10 max-w-[400px] max-h-[575px] w-[90vw]"
+      className="absolute mt-[6px] text-black z-10 max-w-[400px] max-h-[575px] w-[90vw]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, type: "spring" }}
@@ -86,7 +86,7 @@ export default function ResultsModal({
             </div>
           </div>
           {/* IMAGE GRID */}
-          <motion.div className="w-full h-[50vh] max-h-[390px] grid grid-cols-3 grid-rows-3 gap-1 p-[15px]">
+          <motion.div className="w-full h-[42vh] max-h-[390px] grid grid-cols-3 grid-rows-3 gap-1 p-[15px]">
             {images.map((image) => (
               <ResultsGridImage
                 key={image.key}
