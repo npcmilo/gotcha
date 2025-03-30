@@ -26,7 +26,7 @@ export default function InstructionsModal({ onClose }: ModalProps) {
       animate={{ bottom: 0 }}
       exit={{ bottom: -1000 }}
       style={styles.glass}
-      className="w-screen absolute left-0 bottom-0 h-[90%] flex flex-col items-center text-[#FFFFFF] pr-[10vw] pl-[10vw] pt-[5vh] pb-[10vh] z-20"
+      className="w-screen absolute left-0 bottom-0 h-[90vh] flex flex-col items-center text-[#FFFFFF] pr-[10vw] pl-[10vw] pt-[5vh] pb-[10vh] z-20"
     >
       {/* HEADER */}
       <div className="w-full relative">
