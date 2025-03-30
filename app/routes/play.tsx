@@ -34,44 +34,61 @@ export default function Play() {
     useState(false);
   const [isShowingResultsModal, setIsShowingResultsModal] = useState(false);
   const [isShowingManifestoModal, setIsShowingManifestoModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
-  const { levels } = useLoaderData<typeof loader>();
+  const [levels, setLevels] = useState<Level[]>([]);
+
+  const serverData = useLoaderData<typeof loader>();
+
+  useEffect(() => {
+    if (serverData?.levels && serverData.levels.length > 0) {
+      setLevels(serverData.levels);
+    }
+  }, [serverData]);
 
   useEffect(() => {
     if (!levels || levels.length === 0) return;
+    loadRandomLevel();
+  }, [levels]);
 
-    let randomLevel = null;
-    let attempts = 0;
+  const loadRandomLevel = () => {
+    setLoading(true);
+    const validLevels = levels.filter(
+      (lvl) =>
+        lvl.title && (lvl.realImages.length > 0 || lvl.aiImages.length > 0),
+    );
+    if (validLevels.length === 0) return;
 
-    while (attempts < 10) {
-      const candidate = levels[Math.floor(Math.random() * levels.length)];
-      const hasImages =
-        candidate.realImages.length > 0 || candidate.aiImages.length > 0;
-      if (candidate.title && hasImages) {
-        randomLevel = candidate;
-        break;
-      }
-      attempts++;
-    }
-
-    if (!randomLevel) return;
+    const randomLevel =
+      validLevels[Math.floor(Math.random() * validLevels.length)];
 
     const combined = [...randomLevel.realImages, ...randomLevel.aiImages];
-    const shuffled = combined
-      .sort(() => Math.random() - 0.5)
-      .map((src, i) => ({ src, key: i + 1 }));
+    const preloadImages = combined.map(
+      (src) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => resolve();
+        }),
+    );
 
-    setImages(shuffled);
+    Promise.all(preloadImages).then(() => {
+      const shuffled = combined
+        .sort(() => Math.random() - 0.5)
+        .map((src, i) => ({ src, key: i + 1 }));
 
-    const correctKeys = shuffled
-      .filter((img) => randomLevel.realImages.includes(img.src))
-      .map((img) => img.key);
+      const correctKeys = shuffled
+        .filter((img) => randomLevel.realImages.includes(img.src))
+        .map((img) => img.key);
 
-    setCorrect(correctKeys);
-    setGameTitle(randomLevel.title);
-    setGameAudio(randomLevel.audio);
-  }, [levels]);
+      setImages(shuffled);
+      setCorrect(correctKeys);
+      setGameTitle(randomLevel.title);
+      setGameAudio(randomLevel.audio);
+      setLoading(false);
+    });
+  };
 
   const handleVerifyClick = (correctSelections: number[], seconds: number) => {
     setIsShowingResultsModal(true);
@@ -83,22 +100,16 @@ export default function Play() {
   const refreshLevel = () => {
     setGameIsRunning(true);
     setTotalSeconds(0);
-    // retriggers the useEffect by resetting levels
-    const random = levels[Math.floor(Math.random() * levels.length)];
-    setGameTitle(random.title);
-    setGameAudio(random.audio);
-
-    const combined = [...random.realImages, ...random.aiImages];
-    const shuffled = combined
-      .sort(() => Math.random() - 0.5)
-      .map((src, i) => ({ src, key: i + 1 }));
-    setImages(shuffled);
-
-    const correctKeys = shuffled
-      .filter((img) => random.realImages.includes(img.src))
-      .map((img) => img.key);
-    setCorrect(correctKeys);
+    loadRandomLevel();
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen w-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-black"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
