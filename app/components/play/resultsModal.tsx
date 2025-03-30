@@ -54,9 +54,9 @@ export default function ResultsModal({
       <div className="relative flex flex-col justify-start items-center w-full h-full">
         {/* BODY */}
         <div className="w-full flex flex-col text-[#121212]">
-          <div className="p-[15px] pb-[0px]">
+          <div className="p-[10px] pb-[0px]">
             {/* HEADER */}
-            <div className="w-full flex flex-col gap-[0px] bg-blue-600 p-[15px] text-white">
+            <div className="h-[100px] w-full flex flex-col gap-[0px] bg-blue-600 p-[14px] text-white">
               <h1 className="font-[500] text-sm ">Results</h1>
               {/* STATS */}
               <div className="flex flex-row justify-between w-ful">
@@ -85,21 +85,23 @@ export default function ResultsModal({
               </div>
             </div>
           </div>
-          {/* IMAGE GRID */}
-          <motion.div className="w-full h-[42vh] max-h-[390px] grid grid-cols-3 grid-rows-3 gap-1 p-[15px]">
-            {images.map((image) => (
-              <ResultsGridImage
-                key={image.key}
-                index={image.key}
-                src={image.src}
-                correct={correct.includes(image.key)}
-                updateScore={() => setScore(score + 1)}
-                onClick={() => console.log("Results image clicked.")}
-              />
-            ))}
-          </motion.div>
+          <div className="p-[10px] pb-[6px]">
+            {/* IMAGE GRID */}
+            <motion.div className="w-full h-[42vh] max-h-[390px] grid grid-cols-3 grid-rows-3 gap-1">
+              {images.map((image) => (
+                <ResultsGridImage
+                  key={image.key}
+                  index={image.key}
+                  src={image.src}
+                  correct={correct.includes(image.key)}
+                  updateScore={() => setScore(score + 1)}
+                  onClick={() => console.log("Results image clicked.")}
+                />
+              ))}
+            </motion.div>
+          </div>
           {/* FOOTER */}
-          <div className="flex flex-row justify-end p-[15px] pt-[0px]">
+          <div className="flex flex-row justify-end p-[10px] pt-[0px]">
             <button
               className="h-[50px] w-[120px] flex p-[10px] text-white bg-blue-500 flex items-center justify-center font-[500]"
               onClick={handleNewGameClick}

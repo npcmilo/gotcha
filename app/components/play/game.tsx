@@ -169,7 +169,14 @@ export default function Game({
       {/* FOOTER */}
       <div className="w-full h-[50px] justify-between items-center flex flex-row">
         <div className="flex-row h-full gap-[10px] flex items-center justify-center">
-          <button onClick={onRefreshClick}>{refreshIcon}</button>
+          <button
+            onClick={() => {
+              onRefreshClick();
+              setSelectedImages([]);
+            }}
+          >
+            {refreshIcon}
+          </button>
           <button
             onClick={() => {
               window.gameAudio = new Audio(audio);
