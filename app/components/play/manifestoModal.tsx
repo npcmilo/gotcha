@@ -64,7 +64,7 @@ export default function ManifestoModal({ onClose }: ModalProps) {
       animate={{ bottom: 0 }}
       exit={{ bottom: -1000 }}
       style={styles.glass}
-      className="w-screen absolute left-0 bottom-0 h-[80%] flex flex-col justify-center items-start text-[#121212] pt-[10vh] pb-[10vh] gap-[25px] z-20"
+      className="w-screen absolute left-0 bottom-0 h-[85%] flex flex-col justify-start items-start text-[#121212] pt-[5vh] pb-[10vh] gap-[25px] z-20"
     >
       {/* HEADER */}
       <div className="w-full relative pr-[30px] pl-[30px]">
@@ -89,8 +89,8 @@ export default function ManifestoModal({ onClose }: ModalProps) {
         <div className="relative">
           <img
             src="/app/assets/manifesto-img-5.png"
-            alt="Image displaying AI being deceptive"
-            className="h-[380px] w-[380px]"
+            alt="AI being deceptive"
+            className="h-[340px] w-[350px]"
           />
           {/* Video Overlay */}
           <div className="absolute top-[65px] left-[243px] w-[122px] h-[142px] rounded-[8px]">
@@ -99,7 +99,7 @@ export default function ManifestoModal({ onClose }: ModalProps) {
                 style={{
                   position: "absolute",
                   bottom: -100,
-                  right: -42,
+                  right: 0,
                   fontSize: "12px",
                   color: "#999999",
                 }}
@@ -126,7 +126,7 @@ export default function ManifestoModal({ onClose }: ModalProps) {
               </motion.div>
             )}
           </div>
-          <div className="flex flex-row gap-[5px absolute left-[243px] top-[210px]">
+          <div className="flex flex-row gap-[5px absolute left-[220px] top-[190px]">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setLiked((prev) => !prev)}

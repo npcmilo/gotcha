@@ -34,6 +34,10 @@ export default function ResultsModal({
     onClose();
   };
 
+  useEffect(() => {
+    setScore(0);
+  }, []);
+
   return (
     <motion.div
       style={{
@@ -48,13 +52,6 @@ export default function ResultsModal({
       exit={{ opacity: 0 }}
     >
       <div className="relative flex flex-col justify-start items-center w-full h-full">
-        {/* TEMP: Opacity set to 0 */}
-        <div
-          onClick={handleNewGameClick}
-          className="absolute top-2 right-2 opacity-0"
-        >
-          {closeIcon}
-        </div>
         {/* BODY */}
         <div className="w-full flex flex-col text-[#121212]">
           {/* HEADER */}
@@ -90,12 +87,12 @@ export default function ResultsModal({
           <motion.div className="w-full h-[390px] grid grid-cols-3 grid-rows-3 gap-1 p-[15px]">
             {images.map((image) => (
               <ResultsGridImage
+                key={image.key}
                 index={image.key}
                 src={image.src}
                 correct={correct.includes(image.key)}
-                onClick={() => console.log(image.key + " clicked!")}
-                style={null}
                 updateScore={() => setScore(score + 1)}
+                onClick={() => console.log("Results image clicked.")}
               />
             ))}
           </motion.div>
@@ -105,7 +102,7 @@ export default function ResultsModal({
               className="h-[50px] w-[120px] flex p-[10px] text-white bg-blue-500 flex items-center justify-center font-[500]"
               onClick={handleNewGameClick}
             >
-              RESTART
+              NEW GAME
             </button>
           </div>
         </div>
