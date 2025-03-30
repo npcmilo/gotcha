@@ -42,9 +42,17 @@ export default function Play() {
   const serverData = useLoaderData<typeof loader>();
 
   useEffect(() => {
+    // Disable scroll
+    document.body.style.overflow = "hidden";
+
     if (serverData?.levels && serverData.levels.length > 0) {
       setLevels(serverData.levels);
     }
+
+    // Re-enable scroll on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [serverData]);
 
   useEffect(() => {
@@ -202,7 +210,7 @@ const Header = ({
   onManifestoClick: () => void;
 }) => {
   return (
-    <div className="absolute top-10 left-0 flex w-full items-center justify-between pr-[20px] pl-[20px] mw-[500px]">
+    <div className="absolute top-7 left-0 flex w-full items-center justify-between pr-[20px] pl-[20px] mw-[500px]">
       <button onClick={onBackClick}>
         <img
           src="/app/assets/logo.png"

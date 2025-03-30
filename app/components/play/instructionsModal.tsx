@@ -13,7 +13,7 @@ const closeIcon = (
     viewBox="0 -960 960 960"
     width="35px"
     fill="#FFFFFF"
-    className="absolute right-[-5vw] top-[-5vh] cursor-pointer"
+    className="absolute right-[-5vw] top-[-2vh] cursor-pointer"
   >
     <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
   </svg>
@@ -26,7 +26,7 @@ export default function InstructionsModal({ onClose }: ModalProps) {
       animate={{ bottom: 0 }}
       exit={{ bottom: -1000 }}
       style={styles.glass}
-      className="w-screen absolute left-0 bottom-0 h-[80%] flex flex-col items-center text-[#FFFFFF] pr-[10vw] pl-[10vw] pt-[10vh] pb-[10vh] gap-[25px] z-20"
+      className="w-screen absolute left-0 bottom-0 h-[90%] flex flex-col items-center text-[#FFFFFF] pr-[10vw] pl-[10vw] pt-[5vh] pb-[10vh] z-20"
     >
       {/* HEADER */}
       <div className="w-full relative">
@@ -34,12 +34,12 @@ export default function InstructionsModal({ onClose }: ModalProps) {
         <h3>
           Identify the <span className="italic">real</span> images.
         </h3>
-        <div onClick={onClose}>{closeIcon}</div>
+        <button onClick={onClose}>{closeIcon}</button>
       </div>
 
       {/* BODY */}
       <div className="w-full flex flex-col gap-[30px] text-sm">
-        <ul className="list-disc ml-4 text-[]">
+        <ul className="list-disc ml-4 text-sm">
           <li>
             Each round will present a Captcha of images of a specific
             object/thing.
@@ -59,7 +59,9 @@ export default function InstructionsModal({ onClose }: ModalProps) {
               style={styles.stepImage}
             />
             <div className="flex flex-col gap-[5px] justify-center items-start">
-              <h3 className="text-xl font-[500]">1. Select the real images.</h3>
+              <h3 className="text-l font-[500] md:text-xl">
+                1. Select the real images.
+              </h3>
               <p className="text-s font-[300]">
                 Click to add a "real" image to your selection. Don't be deceived
                 by AI.
@@ -73,7 +75,9 @@ export default function InstructionsModal({ onClose }: ModalProps) {
               style={styles.stepImage}
             />
             <div className="flex flex-col gap-[5px] justify-center items-start">
-              <h3 className="text-xl font-[500]">2. Verify your answer.</h3>
+              <h3 className="text-l font-[500] md:text-xl">
+                2. Verify your answer.
+              </h3>
               <p className="text-s font-[300]">
                 Click to add a "real" image to your selection. Don't be deceived
                 by AI.
@@ -87,7 +91,9 @@ export default function InstructionsModal({ onClose }: ModalProps) {
               style={styles.stepImage}
             />
             <div className="flex flex-col gap-[5px] justify-center items-start">
-              <h3 className="text-xl font-[500]">3. Accept Defeat.</h3>
+              <h3 className="text-l font-[500] md:text-xl">
+                3. Accept Defeat.
+              </h3>
               <p className="text-s font-[300]">
                 Humans don't stand a chance. Move on to the next round no matter
                 what.

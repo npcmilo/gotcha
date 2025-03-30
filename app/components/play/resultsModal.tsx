@@ -45,7 +45,7 @@ export default function ResultsModal({
         left: "50%",
         transform: "translateX(-50%)",
       }}
-      className="absolute text-black z-10 w-[400px] h-[576px]"
+      className="absolute mt-[30px] text-black z-10 max-w-[400px] max-h-[575px] w-[90vw]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, type: "spring" }}
@@ -54,37 +54,39 @@ export default function ResultsModal({
       <div className="relative flex flex-col justify-start items-center w-full h-full">
         {/* BODY */}
         <div className="w-full flex flex-col text-[#121212]">
-          {/* HEADER */}
-          <div className="w-full flex flex-col gap-[5px] bg-blue-600 p-[15px] text-white">
-            <h1 className="font-[500] text-xl ">Results</h1>
-            {/* STATS */}
-            <div className="flex flex-row justify-between w-ful">
-              {/* LEFT */}
-              <div className="flex flex-col justify-center items-center">
-                {/* SCORE */}
-                <h1 className="font-bold text-3xl">
-                  <motion.span id="score-count">{score}</motion.span>
-                  /9
-                </h1>
-                <h3 className="mt-[-3px] text-sm">Score</h3>
-              </div>
-              {/* RIGHT */}
-              <div className="flex flex-row gap-[10px]">
+          <div className="p-[15px] pb-[0px]">
+            {/* HEADER */}
+            <div className="w-full flex flex-col gap-[0px] bg-blue-600 p-[15px] text-white">
+              <h1 className="font-[500] text-sm ">Results</h1>
+              {/* STATS */}
+              <div className="flex flex-row justify-between w-ful">
+                {/* LEFT */}
                 <div className="flex flex-col justify-center items-center">
-                  <h1 className="font-bold text-3xl">{totalSeconds}</h1>
-                  <h3 className="mt-[-3px] text-sm">Time</h3>
-                </div>
-                <div className="flex flex-col justify-center items-center">
+                  {/* SCORE */}
                   <h1 className="font-bold text-3xl">
-                    {Math.round((correct.length / 9) * 100)}%
+                    <motion.span id="score-count">{score}</motion.span>
+                    /9
                   </h1>
-                  <h3 className="mt-[-3px] text-sm">Accuracy</h3>
+                  <h3 className="mt-[-3px] text-sm">Score</h3>
+                </div>
+                {/* RIGHT */}
+                <div className="flex flex-row gap-[10px]">
+                  <div className="flex flex-col justify-center items-center">
+                    <h1 className="font-bold text-3xl">{totalSeconds}</h1>
+                    <h3 className="mt-[-3px] text-sm">Time</h3>
+                  </div>
+                  <div className="flex flex-col justify-center items-center">
+                    <h1 className="font-bold text-3xl">
+                      {Math.round((correct.length / 9) * 100)}%
+                    </h1>
+                    <h3 className="mt-[-3px] text-sm">Accuracy</h3>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           {/* IMAGE GRID */}
-          <motion.div className="w-full h-[390px] grid grid-cols-3 grid-rows-3 gap-1 p-[15px]">
+          <motion.div className="w-full h-[50vh] max-h-[390px] grid grid-cols-3 grid-rows-3 gap-1 p-[15px]">
             {images.map((image) => (
               <ResultsGridImage
                 key={image.key}
