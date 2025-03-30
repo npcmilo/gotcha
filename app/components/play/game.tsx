@@ -133,7 +133,7 @@ export default function Game({
   return (
     <motion.div
       style={containerStyle}
-      className="w-[90vw] max-w-[400px] flex flex-col items-center justify-center p-[10px] gap-[7px] mt-[30px]"
+      className="w-[90vw] max-w-[400px] flex flex-col items-center justify-center p-[10px] gap-[7px] mt-[1vh]"
       transition={{ duration: 0.5 }}
     >
       {/* HEADER */}
@@ -152,7 +152,7 @@ export default function Game({
       </div>
 
       {/* IMAGE GRID */}
-      <div className="w-full h-[50vh] max-h-[390px] grid grid-cols-3 grid-rows-3 gap-1">
+      <div className="w-full h-[42vh] max-h-[390px] grid grid-cols-3 grid-rows-3 gap-1">
         {images.map((image) => (
           <GridImage
             key={image.key}
