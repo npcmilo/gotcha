@@ -97,10 +97,35 @@ export default function Play() {
     setGameIsRunning(false);
   };
 
+  const refreshRandomLevel = () => {
+    const validLevels = levels.filter(
+      (lvl) =>
+        lvl.title && (lvl.realImages.length > 0 || lvl.aiImages.length > 0),
+    );
+    if (validLevels.length === 0) return;
+
+    const randomLevel =
+      validLevels[Math.floor(Math.random() * validLevels.length)];
+
+    const combined = [...randomLevel.realImages, ...randomLevel.aiImages];
+    const shuffled = combined
+      .sort(() => Math.random() - 0.5)
+      .map((src, i) => ({ src, key: i + 1 }));
+
+    const correctKeys = shuffled
+      .filter((img) => randomLevel.realImages.includes(img.src))
+      .map((img) => img.key);
+
+    setImages(shuffled);
+    setCorrect(correctKeys);
+    setGameTitle(randomLevel.title);
+    setGameAudio(randomLevel.audio);
+  };
+
   const refreshLevel = () => {
     setGameIsRunning(true);
     setTotalSeconds(0);
-    loadRandomLevel();
+    refreshRandomLevel();
   };
 
   if (loading) {
