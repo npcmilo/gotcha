@@ -13,7 +13,7 @@ const closeIcon = (
     viewBox="0 -960 960 960"
     width="35px"
     fill="#FFFFFF"
-    className="absolute right-[-5vw] top-[-2vh] cursor-pointer"
+    className="absolute right-[-5vw] top-0 cursor-pointer"
   >
     <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
   </svg>
@@ -26,7 +26,7 @@ export default function InstructionsModal({ onClose }: ModalProps) {
       animate={{ bottom: 0 }}
       exit={{ bottom: -1000 }}
       style={styles.glass}
-      className="w-screen absolute left-0 bottom-0 h-[95vh] flex flex-col items-center text-[#FFFFFF] pr-[10vw] pl-[10vw] pt-[5vh] pb-[10vh] z-20"
+      className="w-screen absolute left-0 bottom-0 h-[95vh] flex flex-col items-center text-[#FFFFFF] pr-[10vw] pl-[10vw] pt-[7vh] pb-[10vh] z-20"
     >
       {/* HEADER */}
       <div className="w-full relative">
