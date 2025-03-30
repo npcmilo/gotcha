@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction } from "react";
 
 import GridImage from "./gridImage";
 interface GameProps {
+  title: string;
   onInfoClick: () => void;
   onRefreshClick: () => void;
   disabled?: boolean;
@@ -12,6 +13,7 @@ interface GameProps {
   setTimeElapsed: Dispatch<SetStateAction<number>>;
   images: { src: string; key: number }[];
   realImageIndexes: number[];
+  audio: string;
 }
 
 declare global {
@@ -62,6 +64,7 @@ const answerKey = [2, 4, 8];
 // const answerKey = [1, 3, 5, 6, 7, 9]; // "real" image indexes
 
 export default function Game({
+  title,
   onInfoClick,
   onRefreshClick,
   disabled,
@@ -70,6 +73,7 @@ export default function Game({
   setTimeElapsed,
   images,
   realImageIndexes,
+  audio,
 }: GameProps) {
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
 
@@ -137,7 +141,7 @@ export default function Game({
         {/* LEFT TEXT */}
         <div className="items-start justify-center">
           <h3>Select all real images of</h3>
-          <h1 className="text-[1.5em] font-bold mt-[-5px]">lebron james</h1>
+          <h1 className="text-[1.5em] font-bold mt-[-5px]">{title}</h1>
         </div>
         {/* GAME TIMER */}
         <div className="flex flex-col justify-center items-center">
@@ -164,17 +168,12 @@ export default function Game({
 
       {/* FOOTER */}
       <div className="w-full h-[50px] justify-between items-center flex flex-row">
-        <div className="flex flex-row h-full gap-[10px] flex items-center justify-center">
+        <div className="flex-row h-full gap-[10px] flex items-center justify-center">
           <button onClick={onRefreshClick}>{refreshIcon}</button>
           <button
             onClick={() => {
-              if (window.gameAudio) {
-                window.gameAudio.currentTime = 0;
-                window.gameAudio.play();
-              } else {
-                window.gameAudio = new Audio("/app/assets/instructions.mp3");
-                window.gameAudio.play();
-              }
+              window.gameAudio = new Audio(audio);
+              window.gameAudio.play();
             }}
           >
             {headphonesIcon}

@@ -32,6 +32,7 @@ interface Props {
   style?: any;
   index: number;
   updateScore: () => void;
+  key: number;
 }
 
 export default function ResultsGridImage({
@@ -41,6 +42,7 @@ export default function ResultsGridImage({
   style,
   index,
   updateScore,
+  key,
 }: Props) {
   const animationDelay = 0.8 + index * 0.2;
 
@@ -49,6 +51,7 @@ export default function ResultsGridImage({
       onClick={onClick}
       className="flex justify-center items-center relative cursor-pointer"
       whileHover={{ scale: 1.02, transition: { duration: 0.1 } }}
+      key={src}
     >
       {correct && (
         <motion.div
@@ -59,6 +62,7 @@ export default function ResultsGridImage({
           onAnimationComplete={() => {
             updateScore();
           }}
+          key={src + "-check"}
         >
           {checkIcon}
         </motion.div>
@@ -69,13 +73,14 @@ export default function ResultsGridImage({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: animationDelay }}
           className="absolute top-[-6px] left-[-6px] w-7 h-7 rounded-full bg-red-500 flex items-center justify-center z-10"
+          key={src + "-x"}
         >
           {xIcon}
         </motion.div>
       )}
       <img
         src={src}
-        alt="Grid Image"
+        alt="Gotcha"
         className="w-full h-full object-cover"
         style={style}
       />
