@@ -8,10 +8,9 @@ export interface Level {
 }
 
 export async function fetchLevels(): Promise<Level[]> {
-  const AIRTABLE_BASE_ID = "appdnmf5KCT91EJAU";
-  const AIRTABLE_API_KEY =
-    "patf4dnHoImXaSrcR.e0a01c3c2c96e43f00d6b9494d9c1071a99af1e5d82b34a45358633c63f550b1";
-  const TABLE_NAME = "tblVOr6PVk64vRpwG";
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+  const TABLE_NAME = process.env.TABLE_NAME;
 
   if (!AIRTABLE_BASE_ID || !AIRTABLE_API_KEY) {
     console.error(
