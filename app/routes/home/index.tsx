@@ -18,14 +18,14 @@ export default function Home({ onStart }: HomeProps) {
       <img src="/app/assets/logo.png" alt="Gotcha logo" className="h-[50px]" />
 
       <h1 className="text-center md:text-2xl">
-        <span>
+        <span className="sm:hidden">
           Identify real photos from AI-generated ones.
         </span>
-        {/* <span aria-hidden="true">
+        <span className="hidden sm:block">
           <span className="whitespace-nowrap">Identify <span className="italic">real</span> photos</span>
           <br />
           from AI-generated ones.
-        </span> */}
+        </span>
       </h1>
 
       {/* BUTTONS */}
