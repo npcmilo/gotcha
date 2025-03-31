@@ -17,9 +17,15 @@ export default function Home({ onStart }: HomeProps) {
       {/* LOGO */}
       <img src="/app/assets/logo.png" alt="Gotcha logo" className="h-[50px]" />
 
-      <h1>
-        Identify <span className="italic">real</span> photos from AI-generated
-        ones.
+      <h1 className="text-center md:text-2xl">
+        <span>
+          Identify real photos from AI-generated ones.
+        </span>
+        {/* <span aria-hidden="true">
+          <span className="whitespace-nowrap">Identify <span className="italic">real</span> photos</span>
+          <br />
+          from AI-generated ones.
+        </span> */}
       </h1>
 
       {/* BUTTONS */}
@@ -41,15 +47,24 @@ export default function Home({ onStart }: HomeProps) {
       </div>
 
       {/* FOOTER */}
-      <div className="flex flex-col justify-center items-center">
-        <h4 className="text-[14px]">
+      <div className="flex flex-col justify-center items-center leading-[1.25]">
+        <h4 className="text-[1em] leading-[1.25] font-[600]">
           {new Date().toLocaleString("default", {
             month: "long",
             day: "numeric",
             year: "numeric",
           })}
         </h4>
-        <h5 className="text-[12px] font-[300]">A FORTYTWO Experience</h5>
+        <p className="text-[1em] font-[300] leading-[1.25]">
+          A{" "}
+          <a
+            href="https://fortytwoco.net"
+            className="underline hover:text-blue-600 transition-colors"
+          >
+            FORTYTWO
+          </a>{" "}
+          Experience
+        </p>
       </div>
 
       <AnimatePresence>
