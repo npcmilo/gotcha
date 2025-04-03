@@ -14,7 +14,6 @@ function PosthogInit() {
     posthog.init('phc_WtWHNnz81IrTN1AQ3PxmQvyloEwtWmkxaLmbfE9TIYs', {
       api_host: 'https://us.i.posthog.com',
       person_profiles: 'always', // or 'always' to create profiles for anonymous users as well
-      disable_session_recording: true
     });
   }, []);
 
