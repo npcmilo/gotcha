@@ -52,7 +52,7 @@ export default function ResultsGridImage({
       whileHover={{ scale: 1.02, transition: { duration: 0.1 } }}
       key={src}
     >
-      {(correct && isReal) && (
+      {correct && isReal && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -66,7 +66,7 @@ export default function ResultsGridImage({
           {checkIcon}
         </motion.div>
       )}
-      {(!correct && isReal) && (
+      {!correct && !isReal && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
