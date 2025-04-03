@@ -7,18 +7,62 @@ import ManifestoModal from "~/components/play/manifestoModal";
 import { useNavigate } from "@remix-run/react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 
 // --- Types ---
-type Level = {
-  _id: Id<"levels">;
-  title: string;
-  audioUrl?: string;
+type Level = Doc<"levels"> & {
   images: Array<{
     _id: Id<"images">;
     url: string;
     isAiGenerated: boolean;
   }>;
+};
+
+// --- Layout Component ---
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  const [isShowingManifestoModal, setIsShowingManifestoModal] = useState(false);
+
+  return (
+    <div className="flex flex-col absolute inset-0">
+      <div className="flex w-full items-center justify-between px-[20px] pt-[20px]">
+        <Header
+          onBackClick={() => navigate("/")}
+          onManifestoClick={() => setIsShowingManifestoModal(true)}
+        />
+      </div>
+      <div className="flex-1">
+        {children}
+      </div>
+      <AnimatePresence>
+        {isShowingManifestoModal && (
+          <ManifestoModal onClose={() => setIsShowingManifestoModal(false)} />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// --- Header ---
+const Header = ({
+  onBackClick,
+  onManifestoClick,
+}: {
+  onBackClick: () => void;
+  onManifestoClick: () => void;
+}) => {
+  return (
+    <>
+      <button onClick={onBackClick}>
+        <img
+          src="/app/assets/logo.png"
+          className="h-[25px] w-[95px] cursor-pointer"
+          alt="Gotcha Logo"
+        />
+      </button>
+      <button onClick={onManifestoClick}>{manifestoIcon}</button>
+    </>
+  );
 };
 
 // --- Main Component ---
@@ -29,46 +73,44 @@ export default function Play() {
   const [correct, setCorrect] = useState<number[]>([]);
   const [gameIsRunning, setGameIsRunning] = useState(true);
   const [totalSeconds, setTotalSeconds] = useState(0);
-  const [isShowingInstructionsModal, setIsShowingInstructionsModal] =
-    useState(false);
+  const [isShowingInstructionsModal, setIsShowingInstructionsModal] = useState(false);
   const [isShowingResultsModal, setIsShowingResultsModal] = useState(false);
-  const [isShowingManifestoModal, setIsShowingManifestoModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
+  const [shuffledLevels, setShuffledLevels] = useState<Level[]>([]);
 
-  const navigate = useNavigate();
   const [realImages, setRealImages] = useState<string[]>([]);
 
-  const levels = useQuery(api.levels.getAll) as Level[] | undefined;
+  const levels = useQuery(api.levels.getShuffledLevels) as Level[] | undefined;
+
+  // Initialize shuffled levels once when data is loaded
+  useEffect(() => {
+    if (levels && levels.length > 0 && shuffledLevels.length === 0) {
+      setShuffledLevels(levels);
+    }
+  }, [levels]);
 
   useEffect(() => {
     // Disable scroll
     document.body.style.overflow = "hidden";
 
-    if (levels && levels.length > 0) {
-      loadRandomLevel();
+    if (shuffledLevels.length > 0) {
+      loadLevel(shuffledLevels[currentLevelIndex]);
     }
 
     // Re-enable scroll on unmount
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [levels]);
+  }, [shuffledLevels, currentLevelIndex]);
 
-  const loadRandomLevel = () => {
-    if (!levels || levels.length === 0) return;
+  const loadLevel = (level: Level) => {
     setLoading(true);
 
-    const validLevels = levels.filter(
-      (lvl) => lvl.title && lvl.images.length > 0
-    );
-    if (validLevels.length === 0) return;
-
-    const randomLevel =
-      validLevels[Math.floor(Math.random() * validLevels.length)];
-    const realImages = randomLevel.images
+    const realImages = level.images
       .filter((img) => !img.isAiGenerated)
       .map((img) => img.url);
-    const aiImages = randomLevel.images
+    const aiImages = level.images
       .filter((img) => img.isAiGenerated)
       .map((img) => img.url);
     const combined = [...realImages, ...aiImages];
@@ -95,8 +137,8 @@ export default function Play() {
       setRealImages(realImages);
       setImages(shuffled);
       setCorrect(correctKeys);
-      setGameTitle(randomLevel.title);
-      setGameAudio(randomLevel.audioUrl || "");
+      setGameTitle(level.title);
+      setGameAudio(level.audioUrl || "");
       setLoading(false);
     });
   };
@@ -108,70 +150,36 @@ export default function Play() {
     setGameIsRunning(false);
   };
 
-  const refreshRandomLevel = () => {
-    if (!levels || levels.length === 0) return;
-
-    const validLevels = levels.filter(
-      (lvl) => lvl.title && lvl.images.length > 0
-    );
-    if (validLevels.length === 0) return;
-
-    const randomLevel =
-      validLevels[Math.floor(Math.random() * validLevels.length)];
-    const realImages = randomLevel.images
-      .filter((img) => !img.isAiGenerated)
-      .map((img) => img.url);
-    const aiImages = randomLevel.images
-      .filter((img) => img.isAiGenerated)
-      .map((img) => img.url);
-    const combined = [...realImages, ...aiImages];
-
-    const shuffled = combined
-      .sort(() => Math.random() - 0.5)
-      .map((src, i) => ({ src, key: i + 1 }));
-
-    const correctKeys = shuffled
-      .filter((img) => realImages.includes(img.src))
-      .map((img) => img.key);
-
-    setImages(shuffled);
-    setCorrect(correctKeys);
-    setRealImages(realImages);
-    setGameTitle(randomLevel.title);
-    setGameAudio(randomLevel.audioUrl || "");
-  };
-
-  const refreshLevel = () => {
+  const nextLevel = () => {
+    if (shuffledLevels.length === 0) return;
+    setCurrentLevelIndex((prev) => (prev + 1) % shuffledLevels.length);
     setGameIsRunning(true);
     setTotalSeconds(0);
-    refreshRandomLevel();
   };
 
-  if (!levels || loading) {
+  if (shuffledLevels.length === 0 || loading) {
     return (
-      <div className="flex justify-center items-center h-screen w-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-black"></div>
-      </div>
+      <Layout>
+        <div className="flex justify-center items-center h-full">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-black"></div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <motion.div
-      key="play"
-      initial={{ x: "-100%", opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: "100%", opacity: 0 }}
-      transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
-      className="absolute inset-0"
-    >
-      <motion.div className="h-screen w-screen bg-white flex justify-center items-center">
-        <Header
-          onBackClick={() => navigate("/")}
-          onManifestoClick={() => setIsShowingManifestoModal(true)}
-        />
+    <Layout>
+      <motion.div
+        className="h-full bg-white flex justify-center items-center"
+        initial={{ x: "-100%", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: "100%", opacity: 0 }}
+        transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
+        key={currentLevelIndex}
+      >
         <Game
           onInfoClick={() => setIsShowingInstructionsModal(true)}
-          onRefreshClick={refreshLevel}
+          onRefreshClick={nextLevel}
           disabled={!gameIsRunning}
           onGameEnd={handleVerifyClick}
           timeElapsed={totalSeconds}
@@ -192,7 +200,7 @@ export default function Play() {
             <ResultsModal
               onClose={() => {
                 setIsShowingResultsModal(false);
-                refreshLevel();
+                nextLevel();
               }}
               correct={correct}
               totalSeconds={`${Math.floor(totalSeconds / 60)}:${(
@@ -204,38 +212,11 @@ export default function Play() {
               realImages={realImages}
             />
           )}
-          {isShowingManifestoModal && (
-            <ManifestoModal onClose={() => setIsShowingManifestoModal(false)} />
-          )}
         </AnimatePresence>
       </motion.div>
-    </motion.div>
+    </Layout>
   );
 }
-
-// --- Header ---
-const Header = ({
-  onBackClick,
-  onManifestoClick,
-}: {
-  onBackClick: () => void;
-  onManifestoClick: () => void;
-}) => {
-  return (
-    <div className="absolute top-7 left-0 flex w-full items-center justify-between pr-[20px] pl-[20px] mw-[500px]">
-      <button onClick={onBackClick}>
-        <img
-          src="/app/assets/logo.png"
-          className="h-[25px] w-[95px] cursor-pointer"
-          alt="Gotcha Logo"
-        />
-      </button>
-      <div className="flex flex-row justify-center items-center gap-[10px]">
-        <button onClick={onManifestoClick}>{manifestoIcon}</button>
-      </div>
-    </div>
-  );
-};
 
 // --- Icon ---
 const manifestoIcon = (
