@@ -2,6 +2,12 @@
 
 - 📖 [Remix docs](https://remix.run/docs)
 
+## Getting Started
+
+```shellscript
+npm install
+```
+
 ## Development
 
 Run the dev server:
@@ -10,31 +16,22 @@ Run the dev server:
 npm run dev
 ```
 
+Run the convex dev server:
+
+```shellscript
+npx convex dev
+```
+
 ## Deployment
 
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
+Deployment happens automatically when a PR is merged into main.
 
 ## Styling
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+We use [Tailwind CSS](https://tailwindcss.com/) for styling.
+
+## Convex
+
+We use [Convex](https://www.convex.dev/) for database and auth.
+
+
