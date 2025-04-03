@@ -4,23 +4,22 @@ import Game from "~/components/play/game";
 import InstructionsModal from "~/components/play/instructionsModal";
 import ResultsModal from "~/components/play/resultsModal";
 import ManifestoModal from "~/components/play/manifestoModal";
-import { LoaderFunctionArgs } from "@remix-run/node";
-import { json, useLoaderData, useNavigate } from "@remix-run/react";
-import { fetchLevels } from "~/utils/fetchLevels.server";
+import { useNavigate } from "@remix-run/react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 // --- Types ---
 type Level = {
+  _id: Id<"levels">;
   title: string;
-  realImages: string[];
-  aiImages: string[];
-  audio: string;
+  audioUrl?: string;
+  images: Array<{
+    _id: Id<"images">;
+    url: string;
+    isAiGenerated: boolean;
+  }>;
 };
-
-// --- Loader (runs on server) ---
-export async function loader({ request }: LoaderFunctionArgs) {
-  const levels = await fetchLevels();
-  return json({ levels });
-}
 
 // --- Main Component ---
 export default function Play() {
@@ -37,49 +36,50 @@ export default function Play() {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
-  const [levels, setLevels] = useState<Level[]>([]);
   const [realImages, setRealImages] = useState<string[]>([]);
 
-  const serverData = useLoaderData<typeof loader>();
+  const levels = useQuery(api.levels.getAll) as Level[] | undefined;
 
   useEffect(() => {
     // Disable scroll
     document.body.style.overflow = "hidden";
 
-    if (serverData?.levels && serverData.levels.length > 0) {
-      setLevels(serverData.levels);
+    if (levels && levels.length > 0) {
+      loadRandomLevel();
     }
 
     // Re-enable scroll on unmount
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [serverData]);
-
-  useEffect(() => {
-    if (!levels || levels.length === 0) return;
-    loadRandomLevel();
   }, [levels]);
 
   const loadRandomLevel = () => {
+    if (!levels || levels.length === 0) return;
     setLoading(true);
+
     const validLevels = levels.filter(
-      (lvl) =>
-        lvl.title && (lvl.realImages.length > 0 || lvl.aiImages.length > 0),
+      (lvl) => lvl.title && lvl.images.length > 0
     );
     if (validLevels.length === 0) return;
 
     const randomLevel =
       validLevels[Math.floor(Math.random() * validLevels.length)];
+    const realImages = randomLevel.images
+      .filter((img) => !img.isAiGenerated)
+      .map((img) => img.url);
+    const aiImages = randomLevel.images
+      .filter((img) => img.isAiGenerated)
+      .map((img) => img.url);
+    const combined = [...realImages, ...aiImages];
 
-    const combined = [...randomLevel.realImages, ...randomLevel.aiImages];
     const preloadImages = combined.map(
       (src) =>
         new Promise<void>((resolve) => {
           const img = new Image();
           img.src = src;
           img.onload = () => resolve();
-        }),
+        })
     );
 
     Promise.all(preloadImages).then(() => {
@@ -89,14 +89,14 @@ export default function Play() {
 
       // correct keys is array of real images
       const correctKeys = shuffled
-        .filter((img) => randomLevel.realImages.includes(img.src))
+        .filter((img) => realImages.includes(img.src))
         .map((img) => img.key);
 
-      setRealImages(randomLevel.realImages);
+      setRealImages(realImages);
       setImages(shuffled);
       setCorrect(correctKeys);
       setGameTitle(randomLevel.title);
-      setGameAudio(randomLevel.audio);
+      setGameAudio(randomLevel.audioUrl || "");
       setLoading(false);
     });
   };
@@ -109,29 +109,36 @@ export default function Play() {
   };
 
   const refreshRandomLevel = () => {
+    if (!levels || levels.length === 0) return;
+
     const validLevels = levels.filter(
-      (lvl) =>
-        lvl.title && (lvl.realImages.length > 0 || lvl.aiImages.length > 0),
+      (lvl) => lvl.title && lvl.images.length > 0
     );
     if (validLevels.length === 0) return;
 
     const randomLevel =
       validLevels[Math.floor(Math.random() * validLevels.length)];
+    const realImages = randomLevel.images
+      .filter((img) => !img.isAiGenerated)
+      .map((img) => img.url);
+    const aiImages = randomLevel.images
+      .filter((img) => img.isAiGenerated)
+      .map((img) => img.url);
+    const combined = [...realImages, ...aiImages];
 
-    const combined = [...randomLevel.realImages, ...randomLevel.aiImages];
     const shuffled = combined
       .sort(() => Math.random() - 0.5)
       .map((src, i) => ({ src, key: i + 1 }));
 
     const correctKeys = shuffled
-      .filter((img) => randomLevel.realImages.includes(img.src))
+      .filter((img) => realImages.includes(img.src))
       .map((img) => img.key);
 
     setImages(shuffled);
     setCorrect(correctKeys);
-    setRealImages(randomLevel.realImages);
+    setRealImages(realImages);
     setGameTitle(randomLevel.title);
-    setGameAudio(randomLevel.audio);
+    setGameAudio(randomLevel.audioUrl || "");
   };
 
   const refreshLevel = () => {
@@ -140,7 +147,7 @@ export default function Play() {
     refreshRandomLevel();
   };
 
-  if (loading) {
+  if (!levels || loading) {
     return (
       <div className="flex justify-center items-center h-screen w-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-black"></div>
