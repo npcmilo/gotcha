@@ -32,7 +32,7 @@ interface Props {
   style?: any;
   index: number;
   updateScore: () => void;
-  key: number;
+  isReal: boolean;
 }
 
 export default function ResultsGridImage({
@@ -42,10 +42,9 @@ export default function ResultsGridImage({
   style,
   index,
   updateScore,
-  key,
+  isReal,
 }: Props) {
   const animationDelay = 0.8 + index * 0.2;
-
   return (
     <motion.div
       onClick={onClick}
@@ -53,7 +52,7 @@ export default function ResultsGridImage({
       whileHover={{ scale: 1.02, transition: { duration: 0.1 } }}
       key={src}
     >
-      {correct && (
+      {(correct && isReal) && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -67,7 +66,7 @@ export default function ResultsGridImage({
           {checkIcon}
         </motion.div>
       )}
-      {!correct && (
+      {(!correct && isReal) && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

@@ -7,6 +7,7 @@ interface ModalProps {
   correct: number[];
   totalSeconds: string;
   images: { src: string; key: number }[];
+  realImages: string[];
 }
 
 const closeIcon = (
@@ -27,6 +28,7 @@ export default function ResultsModal({
   correct,
   totalSeconds,
   images,
+  realImages,
 }: ModalProps) {
   const [score, setScore] = useState(0);
 
@@ -37,7 +39,6 @@ export default function ResultsModal({
   useEffect(() => {
     setScore(0);
   }, []);
-
   return (
     <motion.div
       style={{
@@ -64,8 +65,8 @@ export default function ResultsModal({
                 <div className="flex flex-col justify-center items-center">
                   {/* SCORE */}
                   <h1 className="font-bold text-3xl">
-                    <motion.span id="score-count">{score}</motion.span>
-                    /9
+                    <motion.span id="score-count">{score}</motion.span>/
+                    {realImages.length}
                   </h1>
                   <h3 className="mt-[-3px] text-sm">Score</h3>
                 </div>
@@ -77,7 +78,7 @@ export default function ResultsModal({
                   </div>
                   <div className="flex flex-col justify-center items-center">
                     <h1 className="font-bold text-3xl">
-                      {Math.round((correct.length / 9) * 100)}%
+                      {Math.round((score / realImages.length) * 100)}%
                     </h1>
                     <h3 className="mt-[-3px] text-sm">Accuracy</h3>
                   </div>
@@ -96,6 +97,7 @@ export default function ResultsModal({
                   correct={correct.includes(image.key)}
                   updateScore={() => setScore(score + 1)}
                   onClick={() => console.log("Results image clicked.")}
+                  isReal={realImages.includes(image.src)}
                 />
               ))}
             </motion.div>

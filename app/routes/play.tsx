@@ -38,6 +38,7 @@ export default function Play() {
 
   const navigate = useNavigate();
   const [levels, setLevels] = useState<Level[]>([]);
+  const [realImages, setRealImages] = useState<string[]>([]);
 
   const serverData = useLoaderData<typeof loader>();
 
@@ -86,10 +87,12 @@ export default function Play() {
         .sort(() => Math.random() - 0.5)
         .map((src, i) => ({ src, key: i + 1 }));
 
+      // correct keys is array of real images
       const correctKeys = shuffled
         .filter((img) => randomLevel.realImages.includes(img.src))
         .map((img) => img.key);
 
+      setRealImages(randomLevel.realImages);
       setImages(shuffled);
       setCorrect(correctKeys);
       setGameTitle(randomLevel.title);
@@ -126,6 +129,7 @@ export default function Play() {
 
     setImages(shuffled);
     setCorrect(correctKeys);
+    setRealImages(randomLevel.realImages);
     setGameTitle(randomLevel.title);
     setGameAudio(randomLevel.audio);
   };
@@ -190,6 +194,7 @@ export default function Play() {
                 .toString()
                 .padStart(2, "0")}`}
               images={images}
+              realImages={realImages}
             />
           )}
           {isShowingManifestoModal && (

@@ -13,7 +13,8 @@ function PosthogInit() {
   useEffect(() => {
     posthog.init('phc_WtWHNnz81IrTN1AQ3PxmQvyloEwtWmkxaLmbfE9TIYs', {
       api_host: 'https://us.i.posthog.com',
-      person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+      person_profiles: 'always', // or 'always' to create profiles for anonymous users as well
+      disable_session_recording: true
     });
   }, []);
 
