@@ -22,6 +22,17 @@ Run the convex dev server:
 npx convex dev
 ```
 
+## Migration
+
+To migrate data from Airtable to Convex:
+
+1. Check convex.dev to ensure the airtable api keys are set
+
+2. Run the migration:
+```shellscript
+npx convex run migration:migrateFromAirtable
+```
+
 ## Deployment
 
 Deployment happens automatically when a PR is merged into main.
