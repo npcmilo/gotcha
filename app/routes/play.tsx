@@ -78,6 +78,7 @@ export default function Play() {
   const [loading, setLoading] = useState(true);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [shuffledLevels, setShuffledLevels] = useState<Level[]>([]);
+  const [preloadedLevels, setPreloadedLevels] = useState<Level[]>([]);
 
   const [realImages, setRealImages] = useState<string[]>([]);
 
@@ -89,6 +90,35 @@ export default function Play() {
       setShuffledLevels(levels);
     }
   }, [levels]);
+
+  // Preload next 2 levels
+  useEffect(() => {
+    if (shuffledLevels.length > 0) {
+      const nextIndex = (currentLevelIndex + 1) % shuffledLevels.length;
+      const nextNextIndex = (currentLevelIndex + 2) % shuffledLevels.length;
+
+      const nextLevels = [shuffledLevels[nextIndex], shuffledLevels[nextNextIndex]];
+
+      // Preload images for next levels
+      const preloadPromises = nextLevels.map(level => {
+        const allImages = [...level.images];
+        return Promise.all(
+          allImages.map(
+            (img) =>
+              new Promise<void>((resolve) => {
+                const image = new Image();
+                image.src = img.url;
+                image.onload = () => resolve();
+              })
+          )
+        );
+      });
+
+      Promise.all(preloadPromises).then(() => {
+        setPreloadedLevels(nextLevels);
+      });
+    }
+  }, [shuffledLevels, currentLevelIndex]);
 
   useEffect(() => {
     // Disable scroll
@@ -152,7 +182,19 @@ export default function Play() {
 
   const nextLevel = () => {
     if (shuffledLevels.length === 0) return;
-    setCurrentLevelIndex((prev) => (prev + 1) % shuffledLevels.length);
+
+    // If we have preloaded levels, use the first one
+    if (preloadedLevels.length > 0) {
+      const nextLevel = preloadedLevels[0];
+      const nextIndex = shuffledLevels.findIndex(level => level._id === nextLevel._id);
+      setCurrentLevelIndex(nextIndex);
+      // Remove the used level from preloaded levels
+      setPreloadedLevels(prev => prev.slice(1));
+    } else {
+      // Fallback to the old behavior if no preloaded levels
+      setCurrentLevelIndex((prev) => (prev + 1) % shuffledLevels.length);
+    }
+
     setGameIsRunning(true);
     setTotalSeconds(0);
   };

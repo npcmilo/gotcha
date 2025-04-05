@@ -1,56 +1,61 @@
 import { ConvexClient } from "convex/browser";
 import { api } from "../convex/_generated/api";
 import "dotenv/config";
+import { fetchAirtableLevels } from "../convex/models/airtable";
 
-export interface Level {
-  title: string;
-  realImages: string[];
-  aiImages: string[];
-  audio: string;
-}
+// const CONVEX_URL = process.env.CONVEX_URL || "https://pleasant-shepherd-310.convex.cloud"; // Load from .env.local
+const CONVEX_URL = "https://acoustic-sardine-55.convex.cloud"; // Load from .env.local
 
-async function fetchLevels(): Promise<Level[]> {
-  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-  const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
-  const TABLE_NAME = process.env.TABLE_NAME;
-
-  if (!AIRTABLE_BASE_ID || !AIRTABLE_API_KEY) {
-    console.error(
-      "Missing AIRTABLE_BASE_ID or AIRTABLE_API_KEY in environment variables.",
-    );
-    return [];
+/**
+ * Uploads an image to Convex storage and returns the URL
+ */
+async function uploadImageToConvex(client: ConvexClient, url: string): Promise<string> {
+  // Download the file
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download file from ${url}: ${response.statusText}`);
   }
 
-  const res = await fetch(
-    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}`,
-    {
-      headers: {
-        Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-      },
+  const blob = await response.blob();
+
+  // Generate upload URL
+  const uploadUrl = await client.mutation(api.storage.generateUploadUrl, {
+    contentType: blob.type,
+  });
+
+  // Upload to Convex
+  const uploadResponse = await fetch(uploadUrl, {
+    method: "POST",
+    body: blob,
+    headers: {
+      "Content-Type": blob.type,
     },
-  );
+  });
 
-  if (!res.ok) {
-    console.error("Airtable fetch failed", res.statusText);
-    return [];
+  if (!uploadResponse.ok) {
+    throw new Error(`Failed to upload file to Convex: ${uploadResponse.statusText}`);
   }
 
-  const data = await res.json();
+  // Get the storage ID from the response
+  const { storageId } = await uploadResponse.json();
 
-  return data.records.map((record: any) => ({
-    title: record.fields["title"],
-    realImages: (record.fields["realImages"] || []).map((img: any) => img.url),
-    aiImages: (record.fields["aiImages"] || []).map((img: any) => img.url),
-    audio: record.fields["audio"]?.[0]?.url || "",
-  }));
+  // Get the URL for the uploaded file
+  const fileUrl = await client.mutation(api.storage.getUrl, {
+    storageId,
+  });
+
+  if (!fileUrl) {
+    throw new Error(`Failed to get URL for storage ID: ${storageId}`);
+  }
+
+  return fileUrl;
 }
-const CONVEX_URL = process.env.CONVEX_URL || "https://pleasant-shepherd-310.convex.cloud"; // Load from .env.local
 
 async function migrate() {
   const client = new ConvexClient(CONVEX_URL);
 
   // 1. Fetch all levels from Airtable
-  const airtableLevels = await fetchLevels();
+  const airtableLevels = await fetchAirtableLevels();
 
   for (const level of airtableLevels) {
     // 2. Create level in Convex
@@ -59,23 +64,29 @@ async function migrate() {
       audioUrl: level.audio || undefined,
     });
 
-    // 3. Create real images
-    const realImagePromises = level.realImages.map((url) =>
-      client.mutation(api.images.create, {
-        levelId,
-        url,
-        isAiGenerated: false,
-      })
-    );
+    // 3. Upload real images to Convex storage
+    const realImagePromises = level.realImages.map(async (url) => {
+      const fileUrl = await uploadImageToConvex(client, url);
 
-    // 4. Create AI images
-    const aiImagePromises = level.aiImages.map((url) =>
-      client.mutation(api.images.create, {
+      // Create image in the database
+      return client.mutation(api.images.create, {
         levelId,
-        url,
+        url: fileUrl,
+        isAiGenerated: false,
+      });
+    });
+
+    // 4. Upload AI images to Convex storage
+    const aiImagePromises = level.aiImages.map(async (url) => {
+      const fileUrl = await uploadImageToConvex(client, url);
+
+      // Create image in the database
+      return client.mutation(api.images.create, {
+        levelId,
+        url: fileUrl,
         isAiGenerated: true,
-      })
-    );
+      });
+    });
 
     // Wait for all images to be created
     await Promise.all([...realImagePromises, ...aiImagePromises]);
