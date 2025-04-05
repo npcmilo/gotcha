@@ -31,9 +31,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           onManifestoClick={() => setIsShowingManifestoModal(true)}
         />
       </div>
-      <div className="flex-1">
-        {children}
-      </div>
+      <div className="flex-1">{children}</div>
       <AnimatePresence>
         {isShowingManifestoModal && (
           <ManifestoModal onClose={() => setIsShowingManifestoModal(false)} />
@@ -73,16 +71,16 @@ export default function Play() {
   const [correct, setCorrect] = useState<number[]>([]);
   const [gameIsRunning, setGameIsRunning] = useState(true);
   const [totalSeconds, setTotalSeconds] = useState(0);
-  const [isShowingInstructionsModal, setIsShowingInstructionsModal] = useState(false);
+  const [isShowingInstructionsModal, setIsShowingInstructionsModal] =
+    useState(false);
   const [isShowingResultsModal, setIsShowingResultsModal] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [shuffledLevels, setShuffledLevels] = useState<Level[]>([]);
   const [preloadedLevels, setPreloadedLevels] = useState<Level[]>([]);
 
   const [realImages, setRealImages] = useState<string[]>([]);
 
-  const levels = useQuery(api.levels.getShuffledLevels) as Level[] | undefined;
+  const levels = useQuery(api.levels.getAll) as Level[] | undefined;
 
   // Initialize shuffled levels once when data is loaded
   useEffect(() => {
@@ -97,10 +95,13 @@ export default function Play() {
       const nextIndex = (currentLevelIndex + 1) % shuffledLevels.length;
       const nextNextIndex = (currentLevelIndex + 2) % shuffledLevels.length;
 
-      const nextLevels = [shuffledLevels[nextIndex], shuffledLevels[nextNextIndex]];
+      const nextLevels = [
+        shuffledLevels[nextIndex],
+        shuffledLevels[nextNextIndex],
+      ];
 
       // Preload images for next levels
-      const preloadPromises = nextLevels.map(level => {
+      const preloadPromises = nextLevels.map((level) => {
         const allImages = [...level.images];
         return Promise.all(
           allImages.map(
@@ -135,8 +136,6 @@ export default function Play() {
   }, [shuffledLevels, currentLevelIndex]);
 
   const loadLevel = (level: Level) => {
-    setLoading(true);
-
     const realImages = level.images
       .filter((img) => !img.isAiGenerated)
       .map((img) => img.url);
@@ -144,33 +143,21 @@ export default function Play() {
       .filter((img) => img.isAiGenerated)
       .map((img) => img.url);
     const combined = [...realImages, ...aiImages];
+    // Simplified version - no preloading
+    const shuffled = combined
+      .sort(() => Math.random() - 0.5)
+      .map((src, i) => ({ src, key: i + 1 }));
 
-    const preloadImages = combined.map(
-      (src) =>
-        new Promise<void>((resolve) => {
-          const img = new Image();
-          img.src = src;
-          img.onload = () => resolve();
-        })
-    );
+    // correct keys is array of real images
+    const correctKeys = shuffled
+      .filter((img) => realImages.includes(img.src))
+      .map((img) => img.key);
 
-    Promise.all(preloadImages).then(() => {
-      const shuffled = combined
-        .sort(() => Math.random() - 0.5)
-        .map((src, i) => ({ src, key: i + 1 }));
-
-      // correct keys is array of real images
-      const correctKeys = shuffled
-        .filter((img) => realImages.includes(img.src))
-        .map((img) => img.key);
-
-      setRealImages(realImages);
-      setImages(shuffled);
-      setCorrect(correctKeys);
-      setGameTitle(level.title);
-      setGameAudio(level.audioUrl || "");
-      setLoading(false);
-    });
+    setRealImages(realImages);
+    setImages(shuffled);
+    setCorrect(correctKeys);
+    setGameTitle(level.title);
+    setGameAudio(level.audioUrl || "");
   };
 
   const handleVerifyClick = (correctSelections: number[], seconds: number) => {
@@ -186,10 +173,12 @@ export default function Play() {
     // If we have preloaded levels, use the first one
     if (preloadedLevels.length > 0) {
       const nextLevel = preloadedLevels[0];
-      const nextIndex = shuffledLevels.findIndex(level => level._id === nextLevel._id);
+      const nextIndex = shuffledLevels.findIndex(
+        (level) => level._id === nextLevel._id
+      );
       setCurrentLevelIndex(nextIndex);
       // Remove the used level from preloaded levels
-      setPreloadedLevels(prev => prev.slice(1));
+      setPreloadedLevels((prev) => prev.slice(1));
     } else {
       // Fallback to the old behavior if no preloaded levels
       setCurrentLevelIndex((prev) => (prev + 1) % shuffledLevels.length);
@@ -199,7 +188,7 @@ export default function Play() {
     setTotalSeconds(0);
   };
 
-  if (shuffledLevels.length === 0 || loading) {
+  if (shuffledLevels.length === 0) {
     return (
       <Layout>
         <div className="flex justify-center items-center h-full">
