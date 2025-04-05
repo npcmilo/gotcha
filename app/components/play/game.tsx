@@ -59,10 +59,6 @@ const refreshIcon = (
   </svg>
 );
 
-const gridOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // all image indexes
-const answerKey = [2, 4, 8];
-// const answerKey = [1, 3, 5, 6, 7, 9]; // "real" image indexes
-
 export default function Game({
   title,
   onInfoClick,
@@ -76,6 +72,7 @@ export default function Game({
   audio,
 }: GameProps) {
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
 
   /* Update Timer: Stop if game is disabled */
   useEffect(() => {
@@ -86,6 +83,33 @@ export default function Game({
       return () => clearInterval(timer);
     }
   }, [disabled]);
+
+  // Preload images in batches
+  useEffect(() => {
+    const batchSize = 9;
+    const loadBatch = (startIndex: number) => {
+      const batch = images.slice(startIndex, startIndex + batchSize);
+      batch.forEach((image) => {
+        const img = new Image();
+        img.src = image.src;
+        img.onload = () => {
+          setLoadedImages(prev => {
+            const newSet = new Set(prev);
+            newSet.add(image.key);
+            return newSet;
+          });
+        };
+      });
+    };
+
+    // Load first batch immediately
+    loadBatch(0);
+
+    // Load remaining batches with a slight delay
+    for (let i = batchSize; i < images.length; i += batchSize) {
+      setTimeout(() => loadBatch(i), 100 * (i / batchSize));
+    }
+  }, [images]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -98,15 +122,6 @@ export default function Game({
     setSelectedImages((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     );
-  };
-
-  const containerStyle = {
-    ...styles.glass,
-    transition: "opacity 1s",
-    ...(disabled && {
-      opacity: 0.5,
-      pointerEvents: "none" as const,
-    }),
   };
 
   /* End Game: Calculate correct array and execute onGameEnd */
@@ -125,15 +140,24 @@ export default function Game({
       }
     });
 
-    const correct: number[] = gridOptions.filter((x) => !incorrect.includes(x));
+    const correct: number[] = selectedImages.filter((x: number) => !incorrect.includes(x));
     setSelectedImages([]); // Reset selected images
     onGameEnd(correct, timeElapsed); // Pass in total game time elapsed and correct array
   };
 
   return (
     <motion.div
-      style={containerStyle}
       className="w-[90vw] max-w-[400px] flex flex-col items-center justify-center p-[10px] gap-[7px] mt-[1vh]"
+      style={{
+        background: "rgba(255, 255, 255, 0.25)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+        border: "1px solid rgba(255, 255, 255, 0.18)",
+        opacity: disabled ? 0.5 : 1,
+        pointerEvents: disabled ? "none" : "auto",
+        transition: "opacity 1s",
+      }}
       transition={{ duration: 0.5 }}
     >
       {/* HEADER */}
@@ -162,6 +186,7 @@ export default function Game({
               toggleSelect(image.key);
             }}
             style={disabled ? { filter: "blur(2px)" } : null}
+            isLoaded={loadedImages.has(image.key)}
           />
         ))}
       </div>
@@ -197,14 +222,3 @@ export default function Game({
     </motion.div>
   );
 }
-
-const styles = {
-  glass: {
-    background: "rgba(255, 255, 255, 0.25)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-    border: "1px solid rgba(255, 255, 255, 0.18)",
-    transformStyle: "preserve-3d",
-  },
-};

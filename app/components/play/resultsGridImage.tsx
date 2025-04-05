@@ -52,6 +52,17 @@ export default function ResultsGridImage({
       whileHover={{ scale: 1.02, transition: { duration: 0.1 } }}
       key={src}
     >
+      {!correct && isReal && (
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: animationDelay }}
+          className="absolute top-[-6px] left-[-6px] w-7 h-7 rounded-full bg-red-500 flex items-center justify-center z-10"
+          key={src + "-x"}
+        >
+          {xIcon}
+        </motion.div>
+      )}
       {correct && isReal && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
@@ -64,17 +75,6 @@ export default function ResultsGridImage({
           key={src + "-check"}
         >
           {checkIcon}
-        </motion.div>
-      )}
-      {!correct && !isReal && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: animationDelay }}
-          className="absolute top-[-6px] left-[-6px] w-7 h-7 rounded-full bg-red-500 flex items-center justify-center z-10"
-          key={src + "-x"}
-        >
-          {xIcon}
         </motion.div>
       )}
       <img

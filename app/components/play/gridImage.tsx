@@ -1,5 +1,6 @@
 // app/components/play/gridImage.tsx
 import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 const checkIcon = (
   <svg
@@ -17,16 +18,36 @@ interface Props {
   src: string;
   selected: boolean;
   onClick: () => void;
-  style?: any;
+  style?: React.CSSProperties | null;
+  isLoaded?: boolean;
 }
 
-export default function GridImage({ src, selected, onClick, style }: Props) {
+export default function GridImage({
+  src,
+  selected,
+  onClick,
+  style,
+  isLoaded = false,
+}: Props) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <motion.div
       onClick={onClick}
       className="flex justify-center items-center relative cursor-pointer"
       whileHover={{ scale: 1.02, transition: { duration: 0.1 } }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      style={{
+        cursor: "pointer",
+        border: selected ? "3px solid #3b82f6" : "3px solid transparent",
+      }}
     >
+      {/* Blur placeholder */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+      )}
+
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -39,11 +60,17 @@ export default function GridImage({ src, selected, onClick, style }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
-      <img
+      <motion.img
         src={src}
         alt="Grid Image"
         className="w-full h-full object-cover"
-        style={style}
+        loading="lazy"
+        style={{
+          filter: isHovered ? "brightness(1.1)" : "brightness(1)",
+          opacity: isLoaded ? 1 : 0,
+          transition: "opacity 0.3s ease-in-out",
+          ...style
+        }}
       />
     </motion.div>
   );
