@@ -5,17 +5,25 @@ import InstructionsModal from "~/components/play/instructionsModal";
 import ResultsModal from "~/components/play/resultsModal";
 import ManifestoModal from "~/components/play/manifestoModal";
 import { useNavigate } from "@remix-run/react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { useLoaderData, json } from "@remix-run/react";
+import type { Level as AirtableLevel } from "../../utils/fetchLevels.server";
+import { fetchLevels } from "../../utils/fetchLevels.server";
+import type { LoaderFunction } from "@remix-run/node";
 
 // --- Types ---
-type Level = Doc<"levels"> & {
+type Level = {
+  title: string;
   images: Array<{
-    _id: Id<"images">;
     url: string;
     isAiGenerated: boolean;
   }>;
+  audioUrl?: string;
+};
+
+// --- Loader Function ---
+export const loader: LoaderFunction = async () => {
+  const levels = await fetchLevels();
+  return levels;
 };
 
 // --- Layout Component ---
@@ -77,17 +85,26 @@ export default function Play() {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [shuffledLevels, setShuffledLevels] = useState<Level[]>([]);
   const [preloadedLevels, setPreloadedLevels] = useState<Level[]>([]);
-
   const [realImages, setRealImages] = useState<string[]>([]);
 
-  const levels = useQuery(api.levels.getAll) as Level[] | undefined;
+  // Get levels from loader data
+  const airtableLevels = useLoaderData<AirtableLevel[]>();
 
-  // Initialize shuffled levels once when data is loaded
+  // Convert Airtable levels to our Level format
   useEffect(() => {
-    if (levels && levels.length > 0 && shuffledLevels.length === 0) {
-      setShuffledLevels(levels);
+    if (airtableLevels && airtableLevels.length > 0 && shuffledLevels.length === 0) {
+      const convertedLevels: Level[] = airtableLevels.map(level => ({
+        title: level.title,
+        audioUrl: level.audio,
+        images: [
+          ...level.realImages.map((url: string) => ({ url, isAiGenerated: false })),
+          ...level.aiImages.map((url: string) => ({ url, isAiGenerated: true }))
+        ]
+      }));
+
+      setShuffledLevels(convertedLevels);
     }
-  }, [levels]);
+  }, [airtableLevels]);
 
   // Preload next 2 levels
   useEffect(() => {
@@ -174,7 +191,7 @@ export default function Play() {
     if (preloadedLevels.length > 0) {
       const nextLevel = preloadedLevels[0];
       const nextIndex = shuffledLevels.findIndex(
-        (level) => level._id === nextLevel._id
+        (level) => level.title === nextLevel.title
       );
       setCurrentLevelIndex(nextIndex);
       // Remove the used level from preloaded levels
@@ -202,9 +219,6 @@ export default function Play() {
     <Layout>
       <motion.div
         className="h-full bg-white flex justify-center items-center"
-        initial={{ x: "-100%", opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: "100%", opacity: 0 }}
         transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
         key={currentLevelIndex}
       >
